@@ -126,15 +126,15 @@ function random_cast {
 function descripciones_and_post {
 	if [ -z "$sinopsis_mubi" ]; then
 		if [ -z "$frameint" ]; then
-			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nSecond: ${random_time} \nCountry: ${country} \nGenres: ${genres} \n \nThis bot was automatically executed at $(echo "$date1"); last commit: Jul 14; database size: $(du -h ~/plex/Personal/films/Criterion | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Criterion/ | grep .mkv | wc -l) \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
+			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nSecond: ${random_time} \nCountry: ${country} \nGenres: ${genres} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 14; database size: $(du -h ~/plex/Personal/films/Criterion | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Criterion/ | grep .mkv | wc -l) \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
 		else
-			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nFrame: ${frameint} \nCountry: ${country} \nGenres: ${genres} \n \nThis bot was automatically executed at $(echo "$date1"); last commit: Jul 14; database size: $(du -h ~/plex/Personal/films/Criterion | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Criterion/ | grep .mkv | wc -l) \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
+			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nFrame: ${frameint} \nCountry: ${country} \nGenres: ${genres} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 14; database size: $(du -h ~/plex/Personal/films/Criterion | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Criterion/ | grep .mkv | wc -l) \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
 		fi		
 	else
 		if [ -z "$frameint" ]; then
-			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nSecond: ${random_time} \nCountry: ${country} \n \n${sinopsis_mubi} \n \nThis bot was automatically executed at $(echo "$date1"); last commit: Jul 14; database size: $(du -h ~/plex/Personal/films/Criterion | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Criterion/ | grep .mkv | wc -l) \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")			
+			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nSecond: ${random_time} \nCountry: ${country} \n \n${sinopsis_mubi} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 14; database size: $(du -h ~/plex/Personal/films/Criterion | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Criterion/ | grep .mkv | wc -l) \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")			
 		else
-			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nFrame: ${frameint} \nCountry: ${country} \n \n${sinopsis_mubi} \n \nThis bot was automatically executed at $(echo "$date1"); last commit: Jul 14; database size: $(du -h ~/plex/Personal/films/Criterion | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Criterion/ | grep .mkv | wc -l) \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
+			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nFrame: ${frameint} \nCountry: ${country} \n \n${sinopsis_mubi} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 14; database size: $(du -h ~/plex/Personal/films/Criterion | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Criterion/ | grep .mkv | wc -l) \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
 		fi
 
 	fi
