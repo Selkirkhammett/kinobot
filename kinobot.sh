@@ -1,6 +1,6 @@
 #! /bin/bash
 
-## crontab: */20 10-23,0-3 * * * ~/kinobot.sh
+## crontab: */30 10-23,0-3 * * * ~/kinobot.sh
 
 facebook_token=$(cat ~/.tokens | jq -r .facebook)
 tmdb_token=$(cat ~/.tokens | jq -r .tmdb)
@@ -78,8 +78,6 @@ function tmdb_api {
 	og_title=$(echo "$dawget2" | jq -r .original_title)
 	sinopsis=$(echo "$dawget2" | jq -r .overview)
 	country=$(echo "$dawget2" | jq -r '[.production_countries[].name]|join(", ")')
-	tagline=$(echo "$dawget2" | jq -r .tagline)
-	rating=$(echo "$dawget2" | jq -r .vote_average)
 
 	if [ -z "$title5" ]; then
 		exit 1
@@ -152,13 +150,11 @@ if [ $numero2 -eq 1 ]; then
 	random_cast
 elif [ $numero2 -gt 1 -a $numero2 -lt 16 ]; then
 	sorteo_pelicula
-	elegir_frame
 	normal_frame
 	tmdb_api
 	descripciones_and_post
 else
 	sorteo_pelicula
-	elegir_frame
 	third_rule_frame
 	tmdb_api
 	descripciones_and_post

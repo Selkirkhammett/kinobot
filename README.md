@@ -10,6 +10,3 @@ To maybe understand how [Certified Kino Bot](https://www.facebook.com/certifiedk
 * jq
 * ffmpeg
 * pup
-* A lot of GNU core utils
-
-See the [list of films](text/film_list) (JSON) (Jul 14)
