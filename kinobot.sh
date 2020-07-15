@@ -15,7 +15,8 @@ function sorteo_pelicula {
 	numero=$(ls ~/plex/Personal/films/Criterion/ | grep -E "mkv|mp4|m4v|avi" | wc -l)
 	numero1=$(shuf -i 1-${numero} -n 1)
 	lista1=$(sed $numero1!d <(echo "$lista"))
-	pelicula=$(echo "/home/victor/plex/Personal/films/Criterion/${lista1}") ## I forgot to change the name. It's not a folder full of Criterion movies
+	## I forgot to change the name. It's not a folder full of Criterion movies
+	pelicula=$(echo "/home/victor/plex/Personal/films/Criterion/${lista1}") 
 	guessit=$(python3 /usr/local/bin/guessit "$pelicula" -j)
 	terminar="None"
 	titulo=$(echo "$guessit" | jq -r .title)
@@ -42,22 +43,31 @@ function elegir_frame {
 function normal_frame {
 	elegir_frame
 
-	ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vf subtitles="${name}.en.srt" -vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
+	ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vf subtitles="${name}.en.srt" \ 
+		-vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
 
 	if [ ! -e "/var/www/html/bbad/${random_time}.png" ]; then
-		ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
+		ffmpeg -ss ${random_time} -copyts -i "$pelicula" \ 
+			-vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
 	fi
 	}
 
 function third_rule_frame {
 	elegir_frame
 
-	ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vf subtitles="${name}.en.srt" -vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
-	nice -n 19 convert "/var/www/html/bbad/${random_time}.png" \( +clone -colorspace gray   -fx "(i==0||i==int(w/3)||i==2*int(w/3)||i==w-1||j==0||j==int(h/3)||j==2*int(h/3)||j==h-1)?0:1" \) -compose darken -composite "/var/www/html/bbad/${random_time}.png" 2> /dev/null
+	ffmpeg -ss ${random_time} -copyts -i "$pelicula" \ 
+		-vf subtitles="${name}.en.srt" \
+		-vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
+	nice -n 19 convert "/var/www/html/bbad/${random_time}.png" \( +clone -colorspace gray \
+	       	-fx "(i==0||i==int(w/3)||i==2*int(w/3)||i==w-1||j==0||j==int(h/3)||j==2*int(h/3)||j==h-1)?0:1" \) \
+		-compose darken -composite "/var/www/html/bbad/${random_time}.png" 2> /dev/null
 
 	if [ ! -e "/var/www/html/bbad/${random_time}.png" ]; then
-		ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
-		nice -n 19 convert "/var/www/html/bbad/${random_time}.png" \( +clone -colorspace gray   -fx "(i==0||i==int(w/3)||i==2*int(w/3)||i==w-1||j==0||j==int(h/3)||j==2*int(h/3)||j==h-1)?0:1" \) -compose darken -composite "/var/www/html/bbad/${random_time}.png" 2> /dev/null
+		ffmpeg -ss ${random_time} -copyts -i "$pelicula" \
+			-vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
+		nice -n 19 convert "/var/www/html/bbad/${random_time}.png" \( +clone -colorspace gray \
+			-fx "(i==0||i==int(w/3)||i==2*int(w/3)||i==w-1||j==0||j==int(h/3)||j==2*int(h/3)||j==h-1)?0:1" \) \
+		       	-compose darken -composite "/var/www/html/bbad/${random_time}.png" 2> /dev/null
 	fi
 	}
 
@@ -65,9 +75,12 @@ function tmdb_api {
 	dawget=$(wget -qO- "https://api.themoviedb.org/3/search/movie?api_key=${tmdb_token}&query=${titulo}&year=${anho}")
 	id_peli=$(echo "$dawget" | jq .results[].id | head -n1)
 	dawget2=$(wget -qO- "https://api.themoviedb.org/3/movie/${id_peli}?api_key=${tmdb_token}")
-	director_inf=$(wget -qO- "https://api.themoviedb.org/3/movie/${id_peli}/credits?api_key=${tmdb_token}" | jq '.crew[] | select(.job == "Director")' | jq -r .name | head -n1)
-	recos=$(wget -qO- "https://api.themoviedb.org/3/movie/${id_peli}/recommendations?api_key=${tmdb_token}" | jq -r .results[].release_date | date +"%Y" -f - | head -n5 | tr '\n' ' ')
-	recos_titles=$(wget -qO- "https://api.themoviedb.org/3/movie/${id_peli}/recommendations?api_key=${tmdb_token}" | jq -r .results[].title | head -n5 | tr '\n' ',')
+	director_inf=$(wget -qO- "https://api.themoviedb.org/3/movie/${id_peli}/credits?api_key=${tmdb_token}" \
+	       	| jq '.crew[] | select(.job == "Director")' | jq -r .name | head -n1)
+	recos=$(wget -qO- "https://api.themoviedb.org/3/movie/${id_peli}/recommendations?api_key=${tmdb_token}" \
+		| jq -r .results[].release_date | date +"%Y" -f - | head -n5 | tr '\n' ' ')
+	recos_titles=$(wget -qO- "https://api.themoviedb.org/3/movie/${id_peli}/recommendations?api_key=${tmdb_token}" \
+		| jq -r .results[].title | head -n5 | tr '\n' ',')
 
 	IFS=' ' read -r -a rec_year <<< "$recos"
 	IFS=',' read -r -a rec_title <<< "$recos_titles"
@@ -83,15 +96,20 @@ function tmdb_api {
 		exit 1
 	fi
 
-	link7=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&q=${title5}&num=1" | jq -r .items[].link)
-	sinopsis_mubi=$(wget -qO- "${link7}" | pup 'p[class=light-on-dark] json{}' --charset UTF-8 | jq -r .[].text | sed '2!d')
+	link7=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&q=${title5}&num=1" \
+	       	| jq -r .items[].link)
+	sinopsis_mubi=$(wget -qO- "${link7}" | pup 'p[class=light-on-dark] json{}' --charset UTF-8 \
+		| jq -r .[].text | sed '2!d')
 	}
 
 function random_cast {
 	randomcast=$(shuf -n 1 ~/cast_list)
-	link7=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&q=${randomcast}&num=1" | jq -r .items[].link)
-	imagen=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&searchType=image&q=${randomcast}&num=3" | jq -r .items[].link)
-	quote=$(wget -qO- "${link7}" | pup -p 'div[class="entity-description cast-member-quote"] json{}' --charset UTF-8 | jq -r .[].text)
+	link7=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&q=${randomcast}&num=1" \
+		| jq -r .items[].link)
+	imagen=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&searchType=image&q=${randomcast}&num=3" \
+		| jq -r .items[].link)
+	quote=$(wget -qO- "${link7}" | pup -p 'div[class="entity-description cast-member-quote"] json{}' --charset UTF-8 \
+		| jq -r .[].text)
 
 	if [ -z "$quote" ]; then
 		biogra=$(echo -e "Bot has randomly chosen: ${randomcast} \n \nThis bot was automatically executed at $(echo "$date1"); last commit: Jul 14")
