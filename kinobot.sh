@@ -2,9 +2,9 @@
 
 ## crontab: */30 10-23,0-3 * * * ~/kinobot.sh
 
-facebook_token=$(cat ~/.tokens | jq -r .facebook)
-tmdb_token=$(cat ~/.tokens | jq -r .tmdb)
-google_token=$(cat ~/.tokens | jq -r .google)
+facebook_token=$(jq -r .facebook ~/.token)
+tmdb_token=$(jq -r .tmdb ~/.token)
+google_token=$(jq -r .google ~/.token)
 
 date1=$(date +"%H:%M:%S GMT %:z")
 
@@ -41,32 +41,18 @@ function elegir_frame {
 
 function normal_frame {
 	elegir_frame
-
-	ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vf subtitles="${name}.en.srt"\
-	       	-vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
-
-	if [ ! -e "/var/www/html/bbad/${random_time}.png" ]; then
-		ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vframes 1\
-			"/var/www/html/bbad/${random_time}.png" 2> /dev/null
-	fi
+	ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vframes 1\
+		"/var/www/html/bbad/${random_time}.png" 2> /dev/null
 	}
 
 function third_rule_frame {
 	elegir_frame
 
-	ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vf subtitles="${name}.en.srt"\
+	ffmpeg -ss ${random_time} -copyts -i "$pelicula"\
 		-vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
 	nice -n 19 convert "/var/www/html/bbad/${random_time}.png" \( +clone -colorspace gray \
-	       	-fx "(i==0||i==int(w/3)||i==2*int(w/3)||i==w-1||j==0||j==int(h/3)||j==2*int(h/3)||j==h-1)?0:1" \) \
-		-compose darken -composite "/var/www/html/bbad/${random_time}.png" 2> /dev/null
-
-	if [ ! -e "/var/www/html/bbad/${random_time}.png" ]; then
-		ffmpeg -ss ${random_time} -copyts -i "$pelicula"\
-			-vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
-		nice -n 19 convert "/var/www/html/bbad/${random_time}.png" \( +clone -colorspace gray \
-			-fx "(i==0||i==int(w/3)||i==2*int(w/3)||i==w-1||j==0||j==int(h/3)||j==2*int(h/3)||j==h-1)?0:1" \) \
-		       	-compose darken -composite "/var/www/html/bbad/${random_time}.png" 2> /dev/null
-	fi
+		-fx "(i==0||i==int(w/3)||i==2*int(w/3)||i==w-1||j==0||j==int(h/3)||j==2*int(h/3)||j==h-1)?0:1" \) \
+	       	-compose darken -composite "/var/www/html/bbad/${random_time}.png" 2> /dev/null
 	}
 
 function tmdb_api {
