@@ -169,7 +169,7 @@ numero2=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
 
 if [ $numero2 -eq 1 ]; then
 	random_cast
-elif [ $numero2 -gt 1 -a $numero2 -lt 16 ]; then
+elif [ $numero2 -gt 1 -a $numero2 -lt 17 ]; then
 	sorteo_pelicula
 	normal_frame
 	tmdb_api
