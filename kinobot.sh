@@ -9,6 +9,12 @@ randomorg=$(jq -r .random ~/.tokens)
 
 date1=$(date +"%H:%M:%S GMT %:z")
 terminar="None"
+collected_films=$(ls ~/plex/Personal/films/Collection/ | grep -E "mkv|mp4|m4v|avi" | wc -l)
+collected_tv=$(find ~/plex/Personal/tv/Bot/ -name "*mkv" | wc -l)
+films_size=$(du -h ~/plex/Personal/films/Collection | cut -f1)
+episodes_size=$(du -h --max-depth=0 ~/plex/Personal/tv/Bot | cut -f1)
+commit=$(git log --graph --pretty=format:'(%cr)' ~/Certified-Kino-Bot | sed '1q;d' | cut -d "(" -f2 | tr -d '()')
+footnote="Automatically executed at $(echo "$date1"); last commit: $commit; collected films: $collected_films (${films_size}B); collected episodes: $collected_tv (${episodes_size}B) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/"
 
 rm -rf /var/www/html/bbad/*
 
@@ -33,7 +39,7 @@ function sorteo_pelicula {
 	}
 
 function sorteo_episodio {
-	lista=$(find ~/plex/Personal/tv/ -name "*mkv")
+	lista=$(find ~/plex/Personal/tv/Bot/ -name "*mkv")
 	numero=$(echo "$lista" | wc -l)
 #	numero1=$(shuf -i 1-${numero} -n 1)
 	numero1=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
@@ -54,9 +60,9 @@ function sorteo_episodio {
 
 function descripcion_episodio {
 	if [ -z "$frameint" ]; then
-                        descripcion=$(echo -e "${titulo} - Season ${season}, Episode ${episode} \nSecond: ${random_time} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 16; database size: $(du -h ~/plex/Personal/films/Collection | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Collection/ | grep .mkv | wc -l) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
+                        descripcion=$(echo -e "${titulo} - Season ${season}, Episode ${episode} \nSecond: ${random_time} \n \n$footnote")
                 else
-                        descripcion=$(echo -e "${titulo} - Season ${season}, Episode ${episode} \nFrame: ${frameint} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 16; database size: $(du -h ~/plex/Personal/films/Collection | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Collection/ | grep .mkv | wc -l) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
+                        descripcion=$(echo -e "${titulo} - Season ${season}, Episode ${episode} \nFrame: ${frameint} \n \n$footnote")
         fi
 }
 
@@ -139,9 +145,9 @@ function random_cast {
 		| jq -r .[].text)
 
 	if [ -z "$quote" ]; then
-		biogra=$(echo -e "Bot has randomly chosen: ${take_cast} \n \nThis bot was automatically executed at $(echo "$date1"); last commit: Jul 16")
+		biogra=$(echo -e "Bot has randomly chosen: ${take_cast} \n \n$footnote")
 	else
-		biogra=$(echo -e "${quote} \n \nBot has randomly chosen: ${take_cast} \n \nThis bot was automatically executed at $(echo "$date1"); last commit: Jul 16")
+		biogra=$(echo -e "${quote} \n \nBot has randomly chosen: ${take_cast} \n \n$footnote")
 	fi
 
 	while IFS= read -r line; do
@@ -169,15 +175,15 @@ function random_cast {
 function descripcion_pelicula {
 	if [ -z "$sinopsis_mubi" ]; then
 		if [ -z "$frameint" ]; then
-			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nSecond: ${random_time} \nCountry: ${country} \nGenres: ${genres} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 16; database size: $(du -h ~/plex/Personal/films/Collection | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Collection/ | grep .mkv | wc -l) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
+			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nSecond: ${random_time} \nCountry: ${country} \nGenres: ${genres} \n \n$footnote")
 		else
-			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nFrame: ${frameint} \nCountry: ${country} \nGenres: ${genres} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 16; database size: $(du -h ~/plex/Personal/films/Collection | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Collection/ | grep .mkv | wc -l) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
+			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nFrame: ${frameint} \nCountry: ${country} \nGenres: ${genres} \n \n$footnote")
 		fi		
 	else
 		if [ -z "$frameint" ]; then
-			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nSecond: ${random_time} \nCountry: ${country} \n \n${sinopsis_mubi} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 16; database size: $(du -h ~/plex/Personal/films/Collection | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Collection/ | grep .mkv | wc -l) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")			
+			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nSecond: ${random_time} \nCountry: ${country} \n \n${sinopsis_mubi} \n \n$footnote")			
 		else
-			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nFrame: ${frameint} \nCountry: ${country} \n \n${sinopsis_mubi} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 16; database size: $(du -h ~/plex/Personal/films/Collection | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Collection/ | grep .mkv | wc -l) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
+			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nFrame: ${frameint} \nCountry: ${country} \n \n${sinopsis_mubi} \n \n$footnote")
 		fi
 
 	fi
@@ -196,9 +202,10 @@ numero2=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
 	  --data '{"jsonrpc":"2.0","method":"generateIntegers","params":{"apiKey":"'$randomorg'","n":1,"min":1,"max":20,"replacement":true,"base":10},"id":6206}' \
 	  "https://api.random.org/json-rpc/2/invoke" | jq .result.random.data[])
 
+
 if [ $numero2 -eq 21 ]; then ## deprecating cast and rule of thirds for now
 	random_cast
-elif [ $numero2 -gt 1 -a $numero2 -lt 17 ]; then
+elif [ $numero2 -gt 1 -a $numero2 -lt 15 ]; then
 	sorteo_pelicula
 	normal_frame
 	tmdb_api
