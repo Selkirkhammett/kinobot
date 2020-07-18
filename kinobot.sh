@@ -8,6 +8,7 @@ google_token=$(jq -r .google ~/.tokens)
 randomorg=$(jq -r .random ~/.tokens)
 
 date1=$(date +"%H:%M:%S GMT %:z")
+terminar="None"
 
 rm -rf /var/www/html/bbad/*
 
@@ -22,7 +23,6 @@ function sorteo_pelicula {
 	lista1=$(sed $numero1!d <(echo "$lista"))
 	pelicula=$(echo "/home/victor/plex/Personal/films/Collection/${lista1}") 
 	guessit=$(python3 /usr/local/bin/guessit "$pelicula" -j)
-	terminar="None"
 	titulo=$(echo "$guessit" | jq -r .title)
 
 	if [ -z "$titulo" ]; then
@@ -30,8 +30,36 @@ function sorteo_pelicula {
 	fi
 
 	anho=$(echo "$guessit" | jq -r .year)
-	name=$(echo "${pelicula%.*}")
 	}
+
+function sorteo_episodio {
+	lista=$(find ~/plex/Personal/tv/ -name "*mkv")
+	numero=$(echo "$lista" | wc -l)
+#	numero1=$(shuf -i 1-${numero} -n 1)
+	numero1=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
+	  --request POST \
+	  --data '{"jsonrpc":"2.0","method":"generateIntegers","params":{"apiKey":"'$randomorg'","n":1,"min":1,"max":'$numero',"replacement":true,"base":10},"id":6206}' \
+	  "https://api.random.org/json-rpc/2/invoke" | jq .result.random.data[])
+	pelicula=$(sed $numero1!d <(echo "$lista"))
+	guessit=$(python3 /usr/local/bin/guessit "$pelicula" -j)
+	titulo=$(echo "$guessit" | jq -r .title)
+
+	if [ -z "$titulo" ]; then
+		exit 1
+	fi
+
+	season=$(echo "$guessit" | jq -r .season)
+	episode=$(echo "$guessit" | jq -r .episode)
+	}
+
+function descripcion_episodio {
+	if [ -z "$frameint" ]; then
+                        descripcion=$(echo -e "${titulo} - Season ${season}, Episode ${episode} \nSecond: ${random_time} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 16; database size: $(du -h ~/plex/Personal/films/Collection | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Collection/ | grep .mkv | wc -l) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
+                else
+                        descripcion=$(echo -e "${titulo} - Season ${season}, Episode ${episode} \nFrame: ${frameint} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 16; database size: $(du -h ~/plex/Personal/films/Collection | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Collection/ | grep .mkv | wc -l) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
+        fi
+}
+
 
 function elegir_frame {
 	duration=$(($(mediainfo --Inform="General;%Duration%" "${pelicula}" ) / 1000 ))
@@ -138,7 +166,7 @@ function random_cast {
 		"https://graph.facebook.com/111665010589899/photos"
 	}
 
-function descripciones_and_post {
+function descripcion_pelicula {
 	if [ -z "$sinopsis_mubi" ]; then
 		if [ -z "$frameint" ]; then
 			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nSecond: ${random_time} \nCountry: ${country} \nGenres: ${genres} \n \nAutomatically executed at $(echo "$date1"); last commit: Jul 16; database size: $(du -h ~/plex/Personal/films/Collection | cut -f1 -d"T")TBs; collected films: $(ls ~/plex/Personal/films/Collection/ | grep .mkv | wc -l) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/")
@@ -153,30 +181,32 @@ function descripciones_and_post {
 		fi
 
 	fi
-	
+}
+
+function post {
 	curl -s -X POST \
 	-d "url=http://109.169.10.182/bbad/${random_time}.png" \
 	-d "caption=${descripcion}" \
 	-d "access_token=${facebook_token}" \
 	"https://graph.facebook.com/111665010589899/photos"
-	}
+}
 
-#numero2=$(shuf -i 1-20 -n 1)
 numero2=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
 	  --request POST \
 	  --data '{"jsonrpc":"2.0","method":"generateIntegers","params":{"apiKey":"'$randomorg'","n":1,"min":1,"max":20,"replacement":true,"base":10},"id":6206}' \
 	  "https://api.random.org/json-rpc/2/invoke" | jq .result.random.data[])
 
-if [ $numero2 -eq 1 ]; then
+if [ $numero2 -eq 21 ]; then ## deprecating cast and rule of thirds for now
 	random_cast
 elif [ $numero2 -gt 1 -a $numero2 -lt 17 ]; then
 	sorteo_pelicula
 	normal_frame
 	tmdb_api
-	descripciones_and_post
+	descripcion_pelicula
+	post
 else
-	sorteo_pelicula
-	third_rule_frame
-	tmdb_api
-	descripciones_and_post
+	sorteo_episodio
+	normal_frame
+	descripcion_episodio
+	post
 fi
