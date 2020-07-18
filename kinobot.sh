@@ -13,18 +13,18 @@ collected_films=$(ls ~/plex/Personal/films/Collection/ | grep -E "mkv|mp4|m4v|av
 collected_tv=$(find ~/plex/Personal/tv/Bot/ -name "*mkv" | wc -l)
 films_size=$(du -h ~/plex/Personal/films/Collection | cut -f1)
 episodes_size=$(du -h --max-depth=0 ~/plex/Personal/tv/Bot | cut -f1)
-commit=$(git log --graph --pretty=format:'(%cr)' ~/Certified-Kino-Bot | sed '1q;d' | cut -d "(" -f2 | tr -d '()')
-footnote="Automatically executed at $(echo "$date1"); last commit: $commit; collected films: $collected_films (${films_size}B); collected episodes: $collected_tv (${episodes_size}B) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/"
+commit=$(git --git-dir /home/victor/Certified-Kino-Bot/.git log --graph --pretty=format:'%cr' \
+	| cut -d "*" -f 2 | sed 1!d)
+
+footnote="Automatically executed at $date1; last commit:${commit}; collected films: $collected_films (${films_size}B); collected episodes: $collected_tv (${episodes_size}B) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/"
 
 rm -rf /var/www/html/bbad/*
 
 function sorteo_pelicula {
 	lista=$(ls ~/plex/Personal/films/Collection/ | grep -E "mkv|mp4|m4v|avi")
-	numero=$(ls ~/plex/Personal/films/Collection/ | grep -E "mkv|mp4|m4v|avi" | wc -l)
-#	numero1=$(shuf -i 1-${numero} -n 1)
 	numero1=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
 	  --request POST \
-	  --data '{"jsonrpc":"2.0","method":"generateIntegers","params":{"apiKey":"'$randomorg'","n":1,"min":1,"max":'$numero',"replacement":true,"base":10},"id":6206}' \
+	  --data '{"jsonrpc":"2.0","method":"generateIntegers","params":{"apiKey":"'$randomorg'","n":1,"min":1,"max":'$collected_films',"replacement":true,"base":10},"id":6206}' \
 	  "https://api.random.org/json-rpc/2/invoke" | jq .result.random.data[])
 	lista1=$(sed $numero1!d <(echo "$lista"))
 	pelicula=$(echo "/home/victor/plex/Personal/films/Collection/${lista1}") 
@@ -40,11 +40,9 @@ function sorteo_pelicula {
 
 function sorteo_episodio {
 	lista=$(find ~/plex/Personal/tv/Bot/ -name "*mkv")
-	numero=$(echo "$lista" | wc -l)
-#	numero1=$(shuf -i 1-${numero} -n 1)
 	numero1=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
 	  --request POST \
-	  --data '{"jsonrpc":"2.0","method":"generateIntegers","params":{"apiKey":"'$randomorg'","n":1,"min":1,"max":'$numero',"replacement":true,"base":10},"id":6206}' \
+	  --data '{"jsonrpc":"2.0","method":"generateIntegers","params":{"apiKey":"'$randomorg'","n":1,"min":1,"max":'$collected_tv',"replacement":true,"base":10},"id":6206}' \
 	  "https://api.random.org/json-rpc/2/invoke" | jq .result.random.data[])
 	pelicula=$(sed $numero1!d <(echo "$lista"))
 	guessit=$(python3 /usr/local/bin/guessit "$pelicula" -j)
@@ -60,18 +58,17 @@ function sorteo_episodio {
 
 function descripcion_episodio {
 	if [ -z "$frameint" ]; then
-                        descripcion=$(echo -e "${titulo} - Season ${season}, Episode ${episode} \nSecond: ${random_time} \n \n$footnote")
-                else
-                        descripcion=$(echo -e "${titulo} - Season ${season}, Episode ${episode} \nFrame: ${frameint} \n \n$footnote")
+		descripcion=$(echo -e "${titulo} - Season ${season}, Episode ${episode} \nSecond: ${random_time} \n \n$footnote")
+        else
+        	descripcion=$(echo -e "${titulo} - Season ${season}, Episode ${episode} \nFrame: ${frameint} \n \n$footnote")
         fi
-}
+	}
 
 
 function elegir_frame {
 	duration=$(($(mediainfo --Inform="General;%Duration%" "${pelicula}" ) / 1000 ))
 	framerate=$(mediainfo --Inform="General;%FrameRate%" "${pelicula}")
-	let duration=duration-140
-#	shuffled=$(shuf -i 90-${duration} -n 1)
+	let duration=duration-180
 	shuffled=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
 	  --request POST \
 	  --data '{"jsonrpc":"2.0","method":"generateIntegers","params":{"apiKey":"'$randomorg'","n":1,"min":100,"max":'$duration',"replacement":true,"base":10},"id":6206}' \
@@ -194,6 +191,7 @@ function post {
 	-d "url=http://109.169.10.182/bbad/${random_time}.png" \
 	-d "caption=${descripcion}" \
 	-d "access_token=${facebook_token}" \
+	-d "published=false" \
 	"https://graph.facebook.com/111665010589899/photos"
 }
 
