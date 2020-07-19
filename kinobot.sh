@@ -122,8 +122,9 @@ function tmdb_api {
 
 	link7=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&q=${title5}&num=1" \
 	       	| jq -r .items[].link)
-	sinopsis_mubi=$(wget -qO- "${link7}" | pup 'p[class=light-on-dark] json{}' --charset UTF-8 \
-		| jq -r .[].text | sed '2!d')
+	sinopsis_mubi=$(wget -qO- "${link7}" \
+		| pup 'div.film-critic-reviews-list__review-item:nth-child(1) > div:nth-child(1) > div:nth-child(3) text{}' \
+		--charset UTF-8)
 	}
 
 function random_cast {
