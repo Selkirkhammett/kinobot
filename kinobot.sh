@@ -16,7 +16,7 @@ episodes_size=$(du -h --max-depth=0 ~/plex/Personal/tv/Bot | cut -f1)
 commit=$(git --git-dir /home/victor/Certified-Kino-Bot/.git log --graph --pretty=format:'%cr' \
 	| cut -d "*" -f 2 | sed 1!d)
 
-footnote="Automatically executed at $date1; last commit:${commit}; collected films: $collected_films (${films_size}B) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/ \nSee the list of films: https://kino.caretas.club/"
+footnote="Automatically executed at $date1; last commit:${commit}; collected films: $collected_films (${films_size}B) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/"
 
 rm -rf /var/www/html/bbad/*
 
