@@ -122,9 +122,10 @@ function tmdb_api {
 
 	link7=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&q=${title5}&num=1" \
 	       	| jq -r .items[].link)
+	random_critic=$(shuf -i 1-3 -n 1)
 	sinopsis_mubi=$(wget -qO- "${link7}" \
-		| pup 'div.film-critic-reviews-list__review-item:nth-child(1) > div:nth-child(1) > div:nth-child(3) text{}' \
-		--charset UTF-8)
+		| pup 'div.film-critic-reviews-list__review-item:nth-child('$random_critic') > div:nth-child(1) > div:nth-child(3) json{}' \
+		--charset UTF-8 | jq .[].text)
 	}
 
 function random_cast {
@@ -192,7 +193,6 @@ function post {
 	-d "url=http://109.169.10.182/bbad/${random_time}.png" \
 	-d "caption=${descripcion}" \
 	-d "access_token=${facebook_token}" \
-	-d "published=false" \
 	"https://graph.facebook.com/111665010589899/photos"
 }
 
@@ -204,7 +204,7 @@ numero2=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
 
 if [ $numero2 -eq 21 ]; then ## deprecating cast and rule of thirds for now
 	random_cast
-elif [ $numero2 -gt 1 -a $numero2 -lt 15 ]; then
+elif [ $numero2 -gt 1 -a $numero2 -lt 16 ]; then
 	sorteo_pelicula
 	normal_frame
 	tmdb_api
