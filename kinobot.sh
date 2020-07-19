@@ -16,7 +16,7 @@ episodes_size=$(du -h --max-depth=0 ~/plex/Personal/tv/Bot | cut -f1)
 commit=$(git --git-dir /home/victor/Certified-Kino-Bot/.git log --graph --pretty=format:'%cr' \
 	| cut -d "*" -f 2 | sed 1!d)
 
-footnote="Automatically executed at $date1; last commit:${commit}; collected films: $collected_films (${films_size}B); collected episodes: $collected_tv (${episodes_size}B) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/"
+footnote="Automatically executed at $date1; last commit:${commit}; collected films: $collected_films (${films_size}B) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/ \nSee the list of films: https://kino.caretas.club/"
 
 rm -rf /var/www/html/bbad/*
 
@@ -120,17 +120,17 @@ function tmdb_api {
 		exit 1
 	fi
 
-	link7=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&q=${title5}&num=1" \
-	       	| jq -r .items[].link)
-	random_critic=$(shuf -i 1-3 -n 1)
-	sinopsis_mubi=$(wget -qO- "${link7}" \
-		| pup 'div.film-critic-reviews-list__review-item:nth-child('$random_critic') > div:nth-child(1) > div:nth-child(3) json{}' \
-		--charset UTF-8 | jq .[].text)
-	if [ -z $sinopsis_mubi ]; then
-		sinopsis_mubi=$(wget -qO- "${link7}" \
-                | pup 'div.film-critic-reviews-list__review-item:nth-child(1) > div:nth-child(1) > div:nth-child(3) json{}' \
-                --charset UTF-8 | jq .[].text)
-	fi
+#	link7=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&q=${title5}&num=1" \
+#	       	| jq -r .items[].link)
+#	random_critic=$(shuf -i 1-3 -n 1)
+#	sinopsis_mubi=$(wget -qO- "${link7}" \
+#		| pup 'div.film-critic-reviews-list__review-item:nth-child('$random_critic') > div:nth-child(1) > div:nth-child(3) json{}' \
+#		--charset UTF-8 | jq .[].text)
+#	if [ -z $sinopsis_mubi ]; then
+#		sinopsis_mubi=$(wget -qO- "${link7}" \
+ #               | pup 'div.film-critic-reviews-list__review-item:nth-child(1) > div:nth-child(1) > div:nth-child(3) json{}' \
+  #              --charset UTF-8 | jq .[].text)
+#	fi
 	}
 
 function random_cast {
@@ -206,18 +206,10 @@ numero2=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
 	  --data '{"jsonrpc":"2.0","method":"generateIntegers","params":{"apiKey":"'$randomorg'","n":1,"min":1,"max":20,"replacement":true,"base":10},"id":6206}' \
 	  "https://api.random.org/json-rpc/2/invoke" | jq .result.random.data[])
 
+## ignoring cast, rule of thirds and episodes for now
 
-if [ $numero2 -eq 21 ]; then ## deprecating cast and rule of thirds for now
-	random_cast
-elif [ $numero2 -gt 1 -a $numero2 -lt 18 ]; then
-	sorteo_pelicula
-	normal_frame
-	tmdb_api
-	descripcion_pelicula
-	post
-else
-	sorteo_episodio
-	normal_frame
-	descripcion_episodio
-	post
-fi
+sorteo_pelicula
+normal_frame
+tmdb_api
+descripcion_pelicula
+post

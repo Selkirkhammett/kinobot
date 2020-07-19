@@ -1,44 +1,62 @@
 #! /bin/bash
 
-movies=$(find ~/plex/Personal/films/Collection/ -type f \
-	\( -iname \*.mkv -o -iname \*.avi -o -iname \*.m4v -o -iname \*.mp4 \))
+rm -f /var/www/hugo/content/posts/list.md
+md_date=$(date +'%Y-%-m-%-dT%H:%M:%S-04:0')
 
-episodes=$(find ~/plex/Personal/tv/Bot -type f -iname "*.mkv")
+function make_lists {
+	find ~/plex/Personal/films/Collection/ -type f \
+		\( -iname \*.mkv -o -iname \*.avi -o -iname \*.m4v -o -iname \*.mp4 \) \
+		| sed 's/.*\///' > ~/.movie_list
+	
+	count=$(wc -l ~/.movie_list | cut -d " " -f 1)
+}
 
-limit=$(echo "$movies" | wc -l)
-limit1=$(echo "$episodes" | wc -l)
+function get_json {
+	while IFS= read -r line; do
+		if grep -Fx "$line" ~/.dupes; then
+			echo "dupe"
+		else
+			python3 /usr/local/bin/guessit "$line" -j >> ~/.movies_json
+			echo "$line" >> ~/.dupes
+		fi
+	done < ~/.movie_list
+}
 
-## we will use some wild piping and a tricky loop because
-## for some reason mapfile can't handle filenames with spaces :(
+function movie_table {
+	mapfile -t title < <(jq .title ~/.movies_json)
+	mapfile -t year < <(jq .year ~/.movies_json)
+	mapfile -t Source < <(jq .source ~/.movies_json)
 
-movieList=$(for d in $( seq 1 ${limit} ); do
-	movie=$(echo "$movies" | sed $d!d)
-	echo "$movie" | python3 /usr/local/bin/guessit "$movie" -j \
-		| jq -r '("* " + .title + " - " + (.year|tostring) + "; " + .source)'
+	let numero=${#title[@]}-1
+
+	lista_movies=$(for i in $( seq 0 $numero ); do
+	        echo "${title[$i]} | ${year[$i]} | ${Source[$i]}"
 	done)
+	sorted=$(echo "$lista_movies" | sort -k1)
+	unset numero
+}
 
-episodeList=$(for i in $( seq 1 ${limit1} ); do
-	episode=$(echo "$episodes" | sed $d!d)
-	echo "$episode" | python3 /usr/local/bin/guessit "$episode" -j \
-		| jq -r '("* " + .title + " - Season " + (.season|tostring) + ", Episode  " + (.episode|tostring) + "; " + .source)'
-	done)
+make_lists
+get_json
+movie_table
 
 echo -e "---
-title: Certified Kino Bot
-output:
-  html_document:
-    toc: yes
-pagetitle: Certified Kino Bot
+title: \"List of films\"
+date: $md_date
 ---
-### This list was automatically generated at $(date). This list is updated every day.
-### Table of Contents
-1. [Movies](#Movies)
-2. [Episodes](#Episodes)
+Automatically generated at $(date). This list is updated every day.
 
-## Movies
-$movieList
+The bot is open source: [Github repository](https://github.com/vitiko123/Certified-Kino-Bot)
 
-## Episodes
-$episodeList" > ~/.kinobot.md
+### Total: $count
 
-pandoc ~/.kinobot.md -s -o /var/www/collage/kinobot.html
+Title | Year | Source
+--- | --- | ---
+$sorted
+
+You can suggest more films via [Facebook comments](https://www.facebook.com/certifiedkino)
+" > /var/www/hugo/content/posts/list.md
+
+hugo --config="/var/www/hugo/config.toml" -s /var/www/hugo/ -d /var/www/hugo/
+
+cp /var/www/hugo/posts/list/index.html /var/www/hugo/index.html
