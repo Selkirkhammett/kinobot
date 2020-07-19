@@ -126,6 +126,11 @@ function tmdb_api {
 	sinopsis_mubi=$(wget -qO- "${link7}" \
 		| pup 'div.film-critic-reviews-list__review-item:nth-child('$random_critic') > div:nth-child(1) > div:nth-child(3) json{}' \
 		--charset UTF-8 | jq .[].text)
+	if [ -z $sinopsis_mubi ]; then
+		sinopsis_mubi=$(wget -qO- "${link7}" \
+                | pup 'div.film-critic-reviews-list__review-item:nth-child(1) > div:nth-child(1) > div:nth-child(3) json{}' \
+                --charset UTF-8 | jq .[].text)
+	fi
 	}
 
 function random_cast {
@@ -204,7 +209,7 @@ numero2=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
 
 if [ $numero2 -eq 21 ]; then ## deprecating cast and rule of thirds for now
 	random_cast
-elif [ $numero2 -gt 1 -a $numero2 -lt 16 ]; then
+elif [ $numero2 -gt 1 -a $numero2 -lt 18 ]; then
 	sorteo_pelicula
 	normal_frame
 	tmdb_api
