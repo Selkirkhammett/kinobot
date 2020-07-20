@@ -2,6 +2,8 @@
 
 ## crontab: */30 10-23,0-3 * * * ~/kinobot.sh
 
+set -e
+
 facebook_token=$(jq -r .facebook ~/.tokens)
 tmdb_token=$(jq -r .tmdb ~/.tokens)
 google_token=$(jq -r .google ~/.tokens)
@@ -86,6 +88,27 @@ function normal_frame {
 	## remove black borders if present
 	convert "/var/www/html/bbad/${random_time}.png" -trim "/var/www/html/bbad/${random_time}.png"
 	}
+
+
+function paleta {
+	bnw=$(convert "/var/www/html/bbad/${random_time}.png" -colorspace HSL \
+		-channel g -separate +channel -format "%[fx:mean]" info:)
+	
+	if (( $(echo "$bnw > 0.09" |bc -l) )); then
+        	res=$(file -b "$file" | cut -d "," -f2 | cut -d "x" -f1 | tr -d ' ')
+	
+	        toappend=$(($res / 10))
+	        toappend2=$(($toappend + ($toappend / 2)))
+	
+	        list=$(convert "$file" +dither -colors 10 -unique-colors txt:- \
+	                | tail -n +2 | sed -n 's/^.*\#.* \(.*\).*$/xc\:\1/p')
+	
+	        convert -size ${toappend}x${toappend2} $list +append -gravity center \
+	        -resize "${res}x${toappend2}!" -quality 100 /tmp/${shuffled}palette.png
+	        convert -border 5 "/var/www/html/bbad/${random_time}.png" \
+			/tmp/${shuffled}palette.png -append -border 5 "/var/www/html/bbad/${random_time}.png"
+	fi
+}
 
 function third_rule_frame {
 	elegir_frame
@@ -201,6 +224,7 @@ function post {
 	-d "url=http://109.169.10.182/bbad/${random_time}.png" \
 	-d "caption=${descripcion}" \
 	-d "access_token=${facebook_token}" \
+	-d "published=false" \
 	"https://graph.facebook.com/111665010589899/photos"
 }
 
@@ -213,6 +237,7 @@ numero2=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
 
 sorteo_pelicula
 normal_frame
+paleta
 tmdb_api
 descripcion_pelicula
 post
