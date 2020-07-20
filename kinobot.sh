@@ -83,8 +83,9 @@ function elegir_frame {
 
 function normal_frame {
 	elegir_frame
-	ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vframes 1\
-		"/var/www/html/bbad/${random_time}.png" 2> /dev/null
+	
+	ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vf scale=iw*sar:ih \
+		-vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
 	## remove black borders if present
 	convert "/var/www/html/bbad/${random_time}.png" -trim "/var/www/html/bbad/${random_time}.png"
 	}
@@ -92,21 +93,21 @@ function normal_frame {
 
 function paleta {
 	bnw=$(convert "/var/www/html/bbad/${random_time}.png" -colorspace HSL \
-		-channel g -separate +channel -format "%[fx:mean]" info:)
+		-channel g -separate +channel -format "%[fx:mean]" info: | cut -c -4)
 	
-	if (( $(echo "$bnw > 0.09" |bc -l) )); then
-        	res=$(file -b "$file" | cut -d "," -f2 | cut -d "x" -f1 | tr -d ' ')
+	if [ 1 -eq "$(echo "${bnw} > 0.09" | bc)" ]; then
+        	res=$(file -b "/var/www/html/bbad/${random_time}.png" | cut -d "," -f2 | cut -d "x" -f1 | tr -d ' ')
 	
 	        toappend=$(($res / 10))
 	        toappend2=$(($toappend + ($toappend / 2)))
 	
-	        list=$(convert "$file" +dither -colors 10 -unique-colors txt:- \
+	        list=$(convert "/var/www/html/bbad/${random_time}.png" +dither -colors 10 -unique-colors txt:- \
 	                | tail -n +2 | sed -n 's/^.*\#.* \(.*\).*$/xc\:\1/p')
-	
-	        convert -size ${toappend}x${toappend2} $list +append -gravity center \
-	        -resize "${res}x${toappend2}!" -quality 100 /tmp/${shuffled}palette.png
-	        convert -border 5 "/var/www/html/bbad/${random_time}.png" \
-			/tmp/${shuffled}palette.png -append -border 5 "/var/www/html/bbad/${random_time}.png"
+
+	        convert -size ${toappend}x${toappend2} $list +append -gravity center -resize "${res}x${toappend2}!" \
+		-quality 100 /tmp/${shuffled}palette.png
+	        convert -bordercolor white -border 4 "/var/www/html/bbad/${random_time}.png" /tmp/${shuffled}palette.png -append \
+			-bordercolor white -border 4 "/var/www/html/bbad/${random_time}.png"
 	fi
 }
 
@@ -224,7 +225,6 @@ function post {
 	-d "url=http://109.169.10.182/bbad/${random_time}.png" \
 	-d "caption=${descripcion}" \
 	-d "access_token=${facebook_token}" \
-	-d "published=false" \
 	"https://graph.facebook.com/111665010589899/photos"
 }
 
