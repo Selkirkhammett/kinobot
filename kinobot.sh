@@ -83,6 +83,8 @@ function normal_frame {
 	elegir_frame
 	ffmpeg -ss ${random_time} -copyts -i "$pelicula" -vframes 1\
 		"/var/www/html/bbad/${random_time}.png" 2> /dev/null
+	## remove black borders if present
+	convert "/var/www/html/bbad/${random_time}.png" -trim "/var/www/html/bbad/${random_time}.png"
 	}
 
 function third_rule_frame {
@@ -90,6 +92,7 @@ function third_rule_frame {
 
 	ffmpeg -ss ${random_time} -copyts -i "$pelicula"\
 		-vframes 1 "/var/www/html/bbad/${random_time}.png" 2> /dev/null
+	convert "/var/www/html/bbad/${random_time}.png" -trim "/var/www/html/bbad/${random_time}.png"
 	nice -n 19 convert "/var/www/html/bbad/${random_time}.png" \( +clone -colorspace gray \
 		-fx "(i==0||i==int(w/3)||i==2*int(w/3)||i==w-1||j==0||j==int(h/3)||j==2*int(h/3)||j==h-1)?0:1" \) \
 	       	-compose darken -composite "/var/www/html/bbad/${random_time}.png" 2> /dev/null
