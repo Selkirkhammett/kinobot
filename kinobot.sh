@@ -1,6 +1,6 @@
 #! /bin/bash
 
-## crontab: */30 10-23,0-3 * * * ~/kinobot.sh
+## crontab: */15 10-23,0-3 * * * ~/kinobot.sh
 
 set -e
 
@@ -18,7 +18,7 @@ episodes_size=$(du -h --max-depth=0 ~/plex/Personal/tv/Bot | cut -f1)
 commit=$(git --git-dir /home/victor/Certified-Kino-Bot/.git log --graph --pretty=format:'%cr' \
 	| cut -d "*" -f 2 | sed 1!d)
 
-footnote="Automatically executed at $date1; last commit:${commit}; collected films: $collected_films (${films_size}B) \n \nThis bot is open source: https://github.com/vitiko123/Certified-Kino-Bot/"
+footnote="Automatically executed at $date1; last commit:${commit}; collected films: $collected_films (${films_size}B) \n \nThis bot is open source: https://github.com/vitiko98/Certified-Kino-Bot/"
 
 rm -rf /var/www/html/bbad/*
 
@@ -146,19 +146,21 @@ function tmdb_api {
 	if [ -z "$title5" ]; then
 		exit 1
 	fi
+}
 
-#	link7=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&q=${title5}&num=1" \
-#	       	| jq -r .items[].link)
-#	random_critic=$(shuf -i 1-3 -n 1)
-#	sinopsis_mubi=$(wget -qO- "${link7}" \
-#		| pup 'div.film-critic-reviews-list__review-item:nth-child('$random_critic') > div:nth-child(1) > div:nth-child(3) json{}' \
-#		--charset UTF-8 | jq .[].text)
-#	if [ -z $sinopsis_mubi ]; then
-#		sinopsis_mubi=$(wget -qO- "${link7}" \
- #               | pup 'div.film-critic-reviews-list__review-item:nth-child(1) > div:nth-child(1) > div:nth-child(3) json{}' \
-  #              --charset UTF-8 | jq .[].text)
-#	fi
-	}
+function mubi {
+	link7=$(wget -qO- "https://www.googleapis.com/customsearch/v1/?cx=${google_token}&q=${title5}&num=1" \
+	       	| jq -r .items[].link)
+	random_critic=$(shuf -i 1-3 -n 1)
+	sinopsis_mubi=$(wget -qO- "${link7}" \
+		| pup 'div.film-critic-reviews-list__review-item:nth-child('${random_critic}') > div:nth-child(1) > div:nth-child(3) json{}' \
+		--charset UTF-8 | jq -r .[].text)
+	if [ -z "$sinopsis_mubi" ]; then
+		sinopsis_mubi=$(wget -qO- "${link7}" \
+                | pup 'div.film-critic-reviews-list__review-item:nth-child(2) > div:nth-child(1) > div:nth-child(3) json{}' \
+                --charset UTF-8 | jq -r .[].text)
+	fi
+}
 
 function random_cast {
 	randomcast=$(wc -l < ~/cast_list)
@@ -206,9 +208,9 @@ function random_cast {
 function descripcion_pelicula {
 	if [ -z "$sinopsis_mubi" ]; then
 		if [ -z "$frameint" ]; then
-			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nSecond: ${random_time} \nCountry: ${country} \nGenres: ${genres} \n \n$footnote")
+			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nSecond: ${random_time} \nCountry: ${country} \n \n$footnote")
 		else
-			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nFrame: ${frameint} \nCountry: ${country} \nGenres: ${genres} \n \n$footnote")
+			descripcion=$(echo -e "${director_inf} - ${title5} (${year}) \nFrame: ${frameint} \nCountry: ${country} \n \n$footnote")
 		fi		
 	else
 		if [ -z "$frameint" ]; then
@@ -234,10 +236,10 @@ numero2=$(curl -s --header "Content-Type: application/json; charset=utf-8" \
 	  "https://api.random.org/json-rpc/2/invoke" | jq .result.random.data[])
 
 ## ignoring cast, rule of thirds and episodes for now
-
 sorteo_pelicula
 normal_frame
 paleta
 tmdb_api
+#mubi
 descripcion_pelicula
 post
