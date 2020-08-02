@@ -12,3 +12,9 @@ See also: [list of films](https://kino.caretas.club)
 * jq
 * ffmpeg
 * pup
+
+## TODO:
+Some kind of dumb machine learning is planned:
+* Detection of the most colorful or vivid scenes from a movie
+* Detect of duplicate movies in recent time
+
