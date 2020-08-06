@@ -1,13 +1,14 @@
 import json
 import sys
 
-from frame import Frame
-from palette import getPalette
-from scan import Scan
 from facepy import GraphAPI
 from PIL import ImageStat
-from randomorg import getRandom
-from tmdb import TMDB
+
+from kinobot.frame import Frame
+from kinobot.palette import getPalette
+from kinobot.scan import Scan
+from kinobot.randomorg import getRandom
+from kinobot.tmdb import TMDB
 
 def getTokens(file):
     with open(file) as f:
