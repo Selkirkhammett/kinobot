@@ -3,18 +3,14 @@ To maybe understand how [Certified Kino Bot](https://www.facebook.com/certifiedk
 
 See also: [list of films](https://kino.caretas.club)
 
-## Dependencies:
-* Mediainfo
-* ImageMagick
-* wget
-* curl
-* guessit
-* jq
-* ffmpeg
-* pup
+## History
+Initially, this bot was a bash script. To improve some stuff, it was rewritten in Python on August 5. You can check the old bash version through the branches.
 
 ## TODO:
-Some kind of dumb machine learning is planned:
 * Detection of the most colorful or vivid scenes from a movie
 * Detection of duplicate movies in recent time
+* Detection of credits
+* Recursive search
+* Add TV Episodes
+
 
